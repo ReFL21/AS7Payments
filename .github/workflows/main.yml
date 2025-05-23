@@ -41,7 +41,8 @@ jobs:
     - name: Build with Gradle 8.5
       run: gradle -p Payment-Service build
 
-
+      env:
+        STRIPE_API_SECRET_KEY: ${{ secrets.STRIPE_API_SECRET_KEY }}
 
 
   test:
@@ -64,9 +65,12 @@ jobs:
         gradle-version: '8.5'
     - name: Build with Gradle 8.5
       run: gradle -p Payment-Service build
+      env:
+        STRIPE_API_SECRET_KEY: ${{ secrets.STRIPE_API_SECRET_KEY }}
     - name: Tests Gradle 8.5
       run: gradle -p Payment-Service test
-
+      env:
+        STRIPE_API_SECRET_KEY: ${{ secrets.STRIPE_API_SECRET_KEY }}
 
 
 
