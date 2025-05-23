@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -22,11 +20,29 @@ public class PaymentController {
     private ICreatePayment stripeService;
 
     @PostMapping("/create-payment-intent")
-    public ResponseEntity<Map<String, String>> createPaymentIntent(@RequestBody PaymentRequest request) {
-        PaymentIntent paymentIntent = stripeService.createPaymentIntent(request.getAmount(), request.getCurrency());
-        Map<String, String> responseData = new HashMap<>();
-        responseData.put("clientSecret", paymentIntent.getClientSecret());
-        return ResponseEntity.ok(responseData);
+    public ResponseEntity<Map<String,String>> createIntent(
+            @RequestBody PaymentRequest request
+    ) {
+        PaymentIntent intent = stripeService.createPaymentIntent(request);
+        return ResponseEntity.ok(Map.of(
+                "paymentIntentId", intent.getId(),
+                "clientSecret",    intent.getClientSecret()
+        ));
+    }
+
+    /** Step 2: confirm the PaymentIntent and trigger order creation */
+    @PostMapping("/confirm-payment-intent")
+    public ResponseEntity<Map<String,String>> confirmIntent(
+            @RequestBody Map<String,String> body
+    ) {
+        String intentId = body.get("paymentIntentId");
+        if (intentId == null || intentId.isBlank()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("error", "paymentIntentId is required"));
+        }
+        String status = stripeService.confirmPaymentIntent(intentId);
+        return ResponseEntity.ok(Map.of("status", status));
     }
 
 }
